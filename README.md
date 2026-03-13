@@ -1,22 +1,18 @@
-# PromPrune
-
-Official implementation of
-
-**Balancing Saliency and Coverage: Semantic Prominence-Aware Budgeting for Visual Token Compression in VLMs**
+# Balancing Saliency and Coverage: Semantic Prominence-Aware Budgeting for Visual Token Compression in VLMs.
 
 Jaehoon Lee, Mingi Jung, Soohyuk Jang, Seungryong Yoo, Dahuin Jung<sup>&dagger;</sup>, Sungroh Yoon<sup>&dagger;</sup>
 
 <sup>&dagger;</sup> Corresponding authors
 
-📄 **Paper** *(coming soon on arXiv)*
-💻 **Code:** [https://github.com/jayaylee/PromPrune](https://github.com/jayaylee/PromPrune)
+📄 **Paper** *(coming soon on arXiv)*  
+💻 [**Code**](https://github.com/jayaylee/PromPrune)
 
 ---
 
 ## News
 
 - **[2026/03]** 🚀 Our project page is now available.
-- 💻 Evaluation code for **LLaVA-NeXT** and **Qwen2.5-VL** will be released soon.
+💻 Evaluation code for **LLaVA-NeXT** and **Qwen2.5-VL** will be released soon.
 
 # Overview
 

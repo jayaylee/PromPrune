@@ -1,102 +1,212 @@
 # PromPrune
 
-Official repository for "Balancing Saliency and Coverage: Semantic Prominence-Aware Budgeting for Visual Token Compression in VLMs."
+Official implementation of
 
-<a href="https://github.com/jayaylee">Author Name</a><sup>&ast;</sup>, <a href="https://github.com/jayaylee">Author Name</a><sup>&ast;</sup>, <a href="https://github.com/jayaylee">Author Name</a><sup>&dagger;</sup>
+**Balancing Saliency and Coverage: Semantic Prominence-Aware Budgeting for Visual Token Compression in VLMs**
 
-<sup>&ast;</sup>Equal contribution, <sup>&dagger;</sup>Corresponding author
+Jaehoon Lee, Mingi Jung, Soohyuk Jang, Seungryong Yoo, Dahuin Jung†, Sungroh Yoon†
 
-[**🌐 Project Page**](https://github.com/jayaylee/PromPrune) | [**📄 Paper**](https://arxiv.org/)
+† Corresponding authors
 
-## 🎉 News
+📄 **Paper** *(coming soon on arXiv)*
+💻 **Code:** [https://github.com/jayaylee/PromPrune](https://github.com/jayaylee/PromPrune)
 
-- **[2026/03]** Initial repository scaffold is live.
-- More updates coming soon.
+---
 
-## 📖 Overview
+# Overview
 
-Large Vision-Language Models (LVLMs) incur substantial computational cost when processing long visual token sequences. PromPrune is a visual token compression framework that aims to balance two complementary goals:
+![PromPrune Overview](assets/promprune_pipeline.png)
 
-1. Preserving semantically prominent local evidence.
-2. Retaining globally diverse visual coverage under a limited token budget.
+**Figure:** Overview of PromPrune. Spectral entropy estimates the semantic prominence distribution of visual tokens and adaptively allocates token budgets between saliency-driven and coverage-driven selection.
 
-Our current implementation focuses on a simple and practical two-stage pruning strategy:
+Large Vision-Language Models (VLMs) process high-resolution visual inputs that generate **long visual token sequences**, which significantly increase inference cost (attention computation, KV cache memory, and prefill latency).
 
-- Stage 1: saliency-driven token selection using CLS attention.
-- Stage 2: diversity-driven token selection using DPP-style subset construction.
-- Adaptive budgeting: dynamic budget allocation between the two stages based on image-level feature statistics.
+**PromPrune** is a visual token compression framework designed to **adaptively balance two complementary objectives**:
 
-This repository is being organized to support controlled evaluation of PromPrune on top of LLaVA-style models and `lmms-eval`.
+* **Local saliency preservation**
+  Retaining tokens that capture the most semantically important regions.
 
-## 🔍 Key Ideas
+* **Global coverage preservation**
+  Selecting diverse tokens to represent broader visual context.
 
-PromPrune is built around the following working hypotheses:
+Our key observation is that the **distribution of semantic prominence varies across images**, implying that the optimal balance between saliency and coverage should **adapt per sample**.
 
-1. Images with concentrated evidence benefit more from local saliency-focused pruning.
-2. Images with distributed or complex evidence require broader token coverage.
-3. A fixed split between saliency and diversity is suboptimal across images.
-4. Adaptive budget allocation can better trade off local importance and global coverage.
+PromPrune therefore introduces:
 
-The current codebase includes:
+1. **Semantic Prominence-Aware Budget Allocation**
+2. **Two-Stage Token Selection**
 
-- A PromPrune-style `encode_images_promprune` path inside the local `llava` implementation.
-- Dynamic stage budget allocation using spectral-entropy-based statistics.
-- Stage-1 attention top-k token selection.
-- Stage-2 diversity selection with DPP-style greedy subset construction.
-- `lmms-eval` integration for evaluating local LLaVA-based PromPrune variants.
+This design enables **adaptive visual token compression without modifying the underlying LLM architecture**.
 
-## 💻 Code
+---
 
-The repository currently contains an experimental implementation of PromPrune integrated into:
+# Method
 
-- [`llava/`](/home/jhoonlee/workspace/PromPrune/llava)
-- [`lmms-eval/`](/home/jhoonlee/workspace/PromPrune/lmms-eval)
-- [`scripts/`](/home/jhoonlee/workspace/PromPrune/scripts)
+PromPrune operates in two stages.
 
-Example evaluation entrypoint:
+## 1. Semantic Prominence-Aware Budget Allocation
 
-```bash
-./scripts/lmms_eval_llava15_local.sh
+We estimate the **distribution of semantic prominence** in visual tokens using **spectral entropy**.
+
+The total token budget `T` is decomposed into
+
+```
+T = T_sal + T_cov
 ```
 
-You can override PromPrune hyperparameters at runtime:
+where
+
+* `T_sal` : tokens for salient regions
+* `T_cov` : tokens for global coverage
+
+A sigmoidal mapping converts normalized spectral entropy into an adaptive allocation ratio.
+
+Low entropy → concentrated semantics → more saliency tokens
+High entropy → distributed semantics → more coverage tokens
+
+---
+
+## 2. Two-Stage Token Selection
+
+### Stage 1 — Saliency-driven selection
+
+Select the top `T_sal` tokens using attention-based saliency scores derived from CLS-to-token attention.
+
+### Stage 2 — Coverage-driven selection
+
+Select `T_cov` tokens from the remaining candidates using a diversity objective.
+
+We use a **Determinantal Point Process (DPP)** style greedy MAP inference to encourage **globally diverse token representations**.
+
+The final compressed token set is
+
+```
+E_v = S_sal ∪ S_cov
+```
+
+---
+
+# Qualitative Visualization
+
+We visualize the visual tokens selected by different strategies under a fixed token budget.
+
+PromPrune adaptively balances **saliency-driven tokens** and **coverage-driven tokens**, resulting in a more representative token set compared to single-stage strategies.
+
+Red tokens denote **saliency-driven selections**, while cyan tokens denote **coverage-driven selections**.
+
+![PromPrune Token Selection](assets/promprune_tokens.png)
+
+---
+
+# Repository Structure
+
+```
+PromPrune/
+│
+├── llava/          # LLaVA-based model implementation
+├── lmms-eval/      # evaluation framework
+├── scripts/        # experiment scripts
+│
+├── README.md
+└── LICENSE
+```
+
+PromPrune is implemented as a **visual token compression module integrated into LLaVA-style models**.
+
+The main pruning path is implemented in
+
+```
+encode_images_promprune(...)
+```
+
+inside the modified LLaVA pipeline.
+
+---
+
+# Installation
+
+Clone the repository
+
+```bash
+git clone https://github.com/jayaylee/PromPrune.git
+cd PromPrune
+```
+
+Create environment
+
+```bash
+conda create -n promprune python=3.10 -y
+conda activate promprune
+```
+
+Install dependencies
+
+```bash
+cd lmms-eval
+pip install -e .
+cd ..
+pip install -e .
+```
+
+---
+
+# Running Experiments
+
+PromPrune is evaluated using **lmms-eval**.
+
+Example command:
+
+```bash
+bash eval_promprune.sh
+```
+
+Override PromPrune hyperparameters:
 
 ```bash
 VISUAL_TOKEN_NUM=64 \
-PROMPRUNE_KR_MIN=0.1 \
-PROMPRUNE_KR_MAX=0.7 \
+PROMPRUNE_KR_MIN=0.0 \
+PROMPRUNE_KR_MAX=1.0 \
 PROMPRUNE_MU=0.42 \
 PROMPRUNE_TAU=0.02 \
-./scripts/lmms_eval_llava15_local.sh --tasks mme
+bash eval_promprune.sh --tasks mme
 ```
 
-Additional setup instructions, pretrained checkpoints, and benchmark commands will be refined incrementally.
+### Key Parameters
 
-## 🗂️ Repository Status
+| Parameter        | Description                       |
+| ---------------- | --------------------------------- |
+| VISUAL_TOKEN_NUM | Target number of visual tokens    |
+| PROMPRUNE_KR_MIN | Minimum saliency allocation ratio |
+| PROMPRUNE_KR_MAX | Maximum saliency allocation ratio |
+| PROMPRUNE_MU     | Entropy midpoint                  |
+| PROMPRUNE_TAU    | Sigmoid smoothness                |
 
-This README is currently a scaffold adapted from the intended paper/project layout. We will update the following sections over time:
+---
 
-- Author list and affiliations
-- Project page and paper links
-- Benchmark tables and main results
-- Setup and reproduction instructions
-- Ablation details and visualizations
+# Acknowledgements
 
-## 📧 Contact
+This project builds upon several open-source frameworks:
+
+* [https://github.com/haotian-liu/LLaVA](https://github.com/haotian-liu/LLaVA)
+* [https://github.com/EvolvingLMMs-Lab/lmms-eval](https://github.com/EvolvingLMMs-Lab/lmms-eval)
+* [https://github.com/laming-chen/fast-map-dpp](https://github.com/laming-chen/fast-map-dpp)
+
+We thank the authors and maintainers of these projects.
+
+---
+
+# License
+
+This project is licensed under the **Apache License 2.0**.
+
+---
+
+# Contact
 
 For questions or collaboration, please open an issue:
 
-- [PromPrune Issues](https://github.com/jayaylee/PromPrune/issues)
+[https://github.com/jayaylee/PromPrune/issues](https://github.com/jayaylee/PromPrune/issues)
 
-## 🙏 Acknowledgements
+---
 
-We thank the open-source communities around:
-
-- [LLaVA](https://github.com/haotian-liu/LLaVA)
-- [lmms-eval](https://github.com/EvolvingLMMs-Lab/lmms-eval)
-
-Their codebases provide the foundation for our current experimental implementation and evaluation pipeline.
-
-## 📜 License
-
-This project is licensed under the Apache License 2.0.
+⭐ **If you find this repository helpful, please consider giving it a star!**

@@ -12,6 +12,7 @@ Jaehoon Lee, Mingi Jung, Soohyuk Jang, Seungryong Yoo, Dahuin Jung<sup>&dagger;<
 ## News
 
 - **[2026/03]** 🚀 Our project page is now available.
+
 💻 Evaluation code for **LLaVA-NeXT** and **Qwen2.5-VL** will be released soon.
 
 # Overview

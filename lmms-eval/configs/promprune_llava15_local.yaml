@@ -1,0 +1,19 @@
+# PromPrune-local LLaVA 1.5 evaluation config.
+# Usage:
+#   python -m lmms_eval --config configs/promprune_llava15_local.yaml
+# Override values from CLI as needed, e.g.:
+#   python -m lmms_eval --config configs/promprune_llava15_local.yaml --tasks mme --limit 16
+
+env:
+  HF_HOME: "${HF_HOME:-~/.cache/huggingface}"
+  HF_HUB_ENABLE_HF_TRANSFER: "${HF_HUB_ENABLE_HF_TRANSFER:-1}"
+
+model: llava
+model_args: "pretrained=liuhaotian/llava-v1.5-7b,conv_template=vicuna_v1,device_map=auto,visual_token_num=64,promprune_kr_min=0.1,promprune_kr_max=0.7,promprune_mu=0.42,promprune_tau=0.02"
+tasks: "mme"
+batch_size: 1
+num_fewshot: 0
+seed: "42,42,42,42"
+log_samples: true
+log_samples_suffix: "promprune_llava15_vtc"
+output_path: "results/promprune_llava15_vtc/"

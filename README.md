@@ -4,9 +4,9 @@ Official implementation of
 
 **Balancing Saliency and Coverage: Semantic Prominence-Aware Budgeting for Visual Token Compression in VLMs**
 
-Jaehoon Lee, Mingi Jung, Soohyuk Jang, Seungryong Yoo, Dahuin Jung†, Sungroh Yoon†
+Jaehoon Lee, Mingi Jung, Soohyuk Jang, Seungryong Yoo, Dahuin Jung<sup>&dagger;</sup>, Sungroh Yoon<sup>&dagger;</sup>
 
-† Corresponding authors
+<sup>&dagger;</sup> Corresponding authors
 
 📄 **Paper** *(coming soon on arXiv)*
 💻 **Code:** [https://github.com/jayaylee/PromPrune](https://github.com/jayaylee/PromPrune)
